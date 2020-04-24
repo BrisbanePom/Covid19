@@ -8,7 +8,7 @@ library(ggplot2)
 library(stringr)
 library(lubridate)
 library(scales)
-
+#library(gganimate)
 
 
 #Import raw data from Github
@@ -21,7 +21,7 @@ dfCovidRaw <- read_csv(url(urlfile))
 #Transform data - country + Aus State level
 dfCovid1 <- dfCovidRaw %>% 
   select(-Lat,-Long) %>% 
-  filter(`Country/Region` %in% c("Australia", "Italy", "Japan", "Korea, South", "New Zealand", "US", "Spain") |
+  filter(`Country/Region` %in% c("Australia", "Italy", "Japan", "Singapore", "New Zealand", "US", "Spain") |
            (`Country/Region` == "United Kingdom" & is.na(`Province/State`))) %>%
   rename(Country = `Country/Region`,
          State = `Province/State`) %>% 
@@ -76,7 +76,7 @@ MaxDate <- dfCovid1c %>%
               group_by(Region) %>% 
               summarise(MaxDate = max(Date))
 MaxDate <- as.character(MaxDate[["MaxDate"]])
-
+MaxDate
 
 #Merge back on reference point
 dfCovid2 <- dfCovid1c %>% 
@@ -93,27 +93,26 @@ dfCovid2 <- dfCovid1c %>%
 #Plots
 #Country plots
 dfCovid2 %>% 
-    filter(Region %in% c("Australia", "Italy", "Japan", "Korea, South", "New Zealand", "US", "Spain", "United Kingdom")) %>% 
+    filter(Region %in% c("Australia", "Italy", "Japan", "Singapore", "New Zealand", "US", "Spain", "United Kingdom")) %>% 
     ggplot(aes(x=PlotDate, y=CumulativeCases, group=Region, color=Region)) +
       geom_line(aes(alpha = LineAlpha)) +
       geom_point(aes(alpha = LineAlpha), size=1) +
       scale_alpha(guide = 'none', range = c(0.4, 1)) +
       scale_y_log10(labels = comma) +
-      coord_cartesian(xlim = c(-25,20), ylim = c(10,150000)) +
-      labs(x = "Relative Date (Australia on 01Apr2020 = 0)", y = "Reported Cases (log scale)") +
+      coord_cartesian(xlim = c(-50,20), ylim = c(10,1000000)) +
+      labs(x = paste("Relative Date (Australia on ", MaxDate, "= 0)"), y = "Reported Cases (log scale)") +
       ggtitle("Growth in reported Covid-19 cases since Country first reported 100 cases")
       
   
 #Aus State Plots
 dfCovid2 %>% 
-  filter(!(Region %in% c("Italy", "Japan", "Korea, South", "New Zealand", "US", "Spain","United Kingdom",
-                         "Australian Capital Territory", "Tasmania", "Northern Territory"))) %>% 
+  filter(!(Region %in% c("Italy", "Japan", "Korea, South", "New Zealand", "US", "Spain","United Kingdom", "Singapore",
+                         "Australian Capital Territory", "Northern Territory"))) %>% 
   ggplot( aes(x=PlotDate, y=CumulativeCases, group=Region, color=Region)) +
   geom_line(aes(alpha = LineAlpha)) +
   geom_point(aes(alpha = LineAlpha)) +
   scale_alpha(guide = 'none', range = c(0.4, 1)) +
   scale_y_log10(labels = comma) +
-  coord_cartesian(xlim = c(-30,0), ylim = c(10,10000)) +
-  labs(x = "Relative Date (All Australia on 01Apr2020 = 0)", y = "Reported Cases (log scale") +
+  coord_cartesian(xlim = c(-50,0), ylim = c(10,10000)) +
+  labs(x = paste("Relative Date (Australia on ", MaxDate, "= 0)"), y = "Reported Cases (log scale") +
   ggtitle("Growth in reported Covid-19 cases since State first reported 100 cases")
-    
